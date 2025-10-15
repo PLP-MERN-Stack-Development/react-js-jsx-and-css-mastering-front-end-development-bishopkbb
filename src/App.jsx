@@ -265,6 +265,18 @@ const TaskManager = () => {
   );
 };
 
+// Mock data fallback
+const mockUsers = [
+  { id: 1, name: 'Leanne Graham', email: 'leanne@example.com', phone: '1-770-736-8031', address: { city: 'Gwenborough', street: 'Kulas Light' } },
+  { id: 2, name: 'Ervin Howell', email: 'ervin@example.com', phone: '010-692-6593', address: { city: 'Wisokyburgh', street: 'Victor Plains' } },
+  { id: 3, name: 'Clementine Bauch', email: 'clementine@example.com', phone: '1-463-123-4447', address: { city: 'McKenziehaven', street: 'Douglas Extension' } },
+  { id: 4, name: 'Patricia Lebsack', email: 'patricia@example.com', phone: '493-170-9623', address: { city: 'South Elvis', street: 'Hoeger Mall' } },
+  { id: 5, name: 'Chelsey Dietrich', email: 'chelsey@example.com', phone: '(254)954-1289', address: { city: 'Roscoeview', street: 'Skiles Walks' } },
+  { id: 6, name: 'Dennis Schulist', email: 'dennis@example.com', phone: '1-477-935-8478', address: { city: 'South Christy', street: 'Norberto Crossing' } },
+  { id: 7, name: 'Kurtis Weissnat', email: 'kurtis@example.com', phone: '210.067.6132', address: { city: 'Howemouth', street: 'Rex Trail' } },
+  { id: 8, name: 'Nicholas Runolfsdottir', email: 'nicholas@example.com', phone: '586.493.6943', address: { city: 'Aliyaview', street: 'Ellsworth Summit' } },
+];
+
 // API Data Component
 const APIData = () => {
   const [users, setUsers] = useState([]);
@@ -272,18 +284,31 @@ const APIData = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [usingMockData, setUsingMockData] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await fetch('https://jsonplaceholder.typicode.com/users');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const response = await fetch('https://jsonplaceholder.typicode.com/users', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         if (!response.ok) throw new Error('Failed to fetch users');
         const data = await response.json();
         setUsers(data);
         setError(null);
+        setUsingMockData(false);
       } catch (err) {
-        setError(err.message);
+        console.error('API Error:', err);
+        // Use mock data as fallback
+        setUsers(mockUsers);
+        setUsingMockData(true);
+        setError(null); // Don't show error since we have fallback data
       } finally {
         setLoading(false);
       }
@@ -329,6 +354,13 @@ const APIData = () => {
 
   return (
     <Card title="API Data - Users" className="mb-8">
+      {usingMockData && (
+        <div className="mb-4 p-4 bg-orange-100 dark:bg-orange-900 border-2 border-orange-400 dark:border-orange-600 rounded-xl">
+          <p className="text-orange-800 dark:text-orange-200 font-semibold">
+            ℹ️ Using demo data (API connection failed)
+          </p>
+        </div>
+      )}
       <div className="space-y-6">
         <input
           type="text"
@@ -388,10 +420,10 @@ const App = () => {
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-12 text-center">
             <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-800 via-orange-600 to-amber-800 dark:from-amber-400 dark:via-orange-400 dark:to-amber-400 mb-4 drop-shadow-lg">
-              React Premium Task Manager
+              React Premium Edition
             </h1>
             <p className="text-xl text-amber-700 dark:text-orange-300 font-medium">
-              Your Productivity Wingman.
+              Leather Brown & Cadmium Orange Theme
             </p>
           </div>
 
